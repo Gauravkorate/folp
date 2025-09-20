@@ -1,11 +1,6 @@
-# Node
 node_modules/
-npm-debug.log
 .env
-
-# Extension build zips
 *.zip
-
-# OS
+npm-debug.log
 .DS_Store
 Thumbs.db
