@@ -1,0 +1,29 @@
+/* overlay.css */
+.folp-overlay { position: fixed; top: 14px; right: 14px; z-index: 2147483647; pointer-events: auto; }
+.folp-overlay.hidden { display: none; }
+
+.folp-card {
+  min-width: 320px;
+  max-width: 420px;
+  background: rgba(255,255,255,0.78); /* semi-transparent so page shows behind */
+  backdrop-filter: blur(6px);
+  color: #111;
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.22);
+  padding: 10px;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+}
+
+.folp-close {
+  float: right;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+}
+
+.folp-header { margin-bottom: 6px; font-size: 14px; }
+.folp-content { max-height: 320px; overflow:auto; font-size: 13px; line-height:1.35; }
+.folp-footer { text-align: right; margin-top: 8px; }
+.folp-footer button { margin-left: 6px; padding:6px 8px; font-size:12px; cursor:pointer; }

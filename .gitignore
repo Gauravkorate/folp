@@ -1,0 +1,11 @@
+# Node
+node_modules/
+npm-debug.log
+.env
+
+# Extension build zips
+*.zip
+
+# OS
+.DS_Store
+Thumbs.db
