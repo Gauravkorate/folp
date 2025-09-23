@@ -116,10 +116,16 @@
   }
 
   // Listen to custom events dispatched by background worker
-  window.addEventListener("Folp:action", (e) => {
-    const type = e.detail || "lookup";
-    handleAction(type);
-  });
+   
+window.addEventListener("Folp:action", (e) => {
+  const selection = e.detail;
+  if (!selection || !selection.trim()) {
+    alert("Please select some text first.");
+    return;
+  }
+  doLookup(selection.trim());  // Always lookup for now
+});
+
 
   // keyboard shortcut: Ctrl+Shift+L triggers lookup
   document.addEventListener("keydown", (e) => {
@@ -135,4 +141,6 @@
 
   // create overlay when content script loads
   ensureOverlay();
+  
+   
 })();

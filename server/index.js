@@ -1,20 +1,39 @@
-// index.js
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const fetch = global.fetch || require('node-fetch');
-const cache = require('./utils/cache');
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+import cache from "./utils/cache.js";
+
+dotenv.config();
+console.log("Environment keys check:");
+console.log("  PORT:", process.env.PORT);
+console.log("  STACK_KEY:", process.env.STACK_KEY ? "set" : "missing");
+console.log("  WOLFRAM_KEY:", process.env.WOLFRAM_KEY ? "set" : "missing");
+
+// Fix for __dirname in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 app.use(cors());
-app.use(express.json({ limit: '1mb' }));
+app.use(express.json({ limit: "1mb" }));
+
+// Global fetch fallback
+let fetch;
+if (typeof global.fetch === "undefined") {
+  const { default: nodeFetch } = await import("node-fetch");
+  fetch = nodeFetch;
+} else {
+  fetch = global.fetch;
+}
 
 // Helper: safe fetch with timeout
-async function safeFetch(url, opts={}, timeout=4000) {
+async function safeFetch(url, opts = {}, timeout = 4000) {
   const controller = new AbortController();
-  const id = setTimeout(()=>controller.abort(), timeout);
+  const id = setTimeout(() => controller.abort(), timeout);
   try {
-    const res = await fetch(url, {...opts, signal: controller.signal});
+    const res = await fetch(url, { ...opts, signal: controller.signal });
     clearTimeout(id);
     return res;
   } catch (e) {
@@ -22,6 +41,8 @@ async function safeFetch(url, opts={}, timeout=4000) {
     throw e;
   }
 }
+
+app.get("/health", (req, res) => res.json({ ok: true }));
 
 // 1) Combined lookup: dictionary + wiki
 app.post('/lookup', async (req, res) => {
@@ -57,7 +78,7 @@ app.post('/lookup', async (req, res) => {
       const j2 = await r2.json();
       if (j2 && j2.extract) result.wiki = { extract: j2.extract, url: j2.content_urls ? j2.content_urls.desktop.page : undefined };
     }
-  } catch (e) {}
+  } catch (e) { }
 
   // if nothing found, produce a small fallback
   if (!result.dictionary && !result.wiki) {
@@ -145,5 +166,5 @@ app.post('/explain', async (req, res) => {
 // health
 app.get('/health', (req, res) => res.json({ ok: true }));
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, ()=>console.log(`Folp helper backend listening on ${PORT}`));
+const PORT = process.env.PORT || 5000; // 🔥 Force port 5000
+app.listen(PORT, () => console.log(` Folp backend running on ${PORT}`));
