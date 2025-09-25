@@ -1,146 +1,156 @@
-// content.js
+// content.js - Consolidated version
+// content.js - Sidebar version only
 (() => {
-  const OVERLAY_ID = "folp-helper-overlay-v1";
+  const SIDEBAR_ID = "folp-sidebar-v1";
 
-  // create overlay if missing
-  function ensureOverlay() {
-    if (document.getElementById(OVERLAY_ID)) return;
-    const overlay = document.createElement("div");
-    overlay.id = OVERLAY_ID;
-    overlay.className = "folp-overlay hidden";
-    overlay.innerHTML = `
-      <div class="folp-card" role="dialog" aria-live="polite">
-        <button class="folp-close" title="Close">✕</button>
-        <div class="folp-header"><strong>Folp Helper</strong> <span id="folp-type" style="font-size:0.9em;color:#666;margin-left:8px"></span></div>
-        <div id="folp-content" class="folp-content">Select text and choose an action.</div>
-        <div class="folp-footer">
-          <button id="folp-copy">Copy</button>
-          <button id="folp-open-src">Open source</button>
+  // Ensure only one sidebar exists
+  function ensureSidebar() {
+    if (document.getElementById(SIDEBAR_ID)) return;
+
+    const sidebar = document.createElement("div");
+    sidebar.id = SIDEBAR_ID;
+    sidebar.innerHTML = `
+      <div class="folp-sidebar">
+        <div class="folp-header">
+          <strong>Folp</strong>
+          <button id="folp-close">✕</button>
         </div>
-      </div>`;
-    document.documentElement.appendChild(overlay);
+        <div id="folp-content" class="folp-content">
+          Select text and click <b>Search with Folp</b>
+        </div>
+      </div>
+      <style>
+        .folp-sidebar {
+          position: fixed;
+          top: 0;
+          right: 0;
+          width: 350px;
+          height: 100vh;
+          background: #1e1e2f;
+          color: white;
+          font-family: Arial, sans-serif;
+          font-size: 14px;
+          display: flex;
+          flex-direction: column;
+          border-left: 2px solid #444;
+          box-shadow: -2px 0 10px rgba(0,0,0,0.3);
+          z-index: 999999;
+          transition: transform 0.3s ease-in-out;
+          transform: translateX(0);
+        }
+        .folp-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 10px;
+          background: #2b2b3d;
+          border-bottom: 1px solid #444;
+        }
+        #folp-close {
+          background: none;
+          border: none;
+          color: white;
+          font-size: 16px;
+          cursor: pointer;
+        }
+        .folp-content {
+          padding: 12px;
+          overflow-y: auto;
+          flex-grow: 1;
+        }
+        .folp-content pre {
+          background: #2d2d40;
+          padding: 8px;
+          border-radius: 6px;
+          white-space: pre-wrap;
+          word-wrap: break-word;
+          margin-top: 10px;
+        }
+        .folp-sidebar.hidden {
+          transform: translateX(100%);
+        }
+      </style>
+    `;
 
-    overlay.querySelector(".folp-close").addEventListener("click", () => overlay.classList.add("hidden"));
-    overlay.querySelector("#folp-copy").addEventListener("click", async () => {
-      const txt = document.getElementById("folp-content").innerText;
-      await navigator.clipboard.writeText(txt);
-      alert("Copied.");
-    });
-    overlay.querySelector("#folp-open-src").addEventListener("click", () => {
-      overlay.classList.remove("hidden");
-      // do nothing special for now
+    document.body.appendChild(sidebar);
+
+    document.getElementById("folp-close").addEventListener("click", () => {
+      sidebar.remove();
     });
   }
 
-  function showOverlay(type, htmlOrText) {
-    ensureOverlay();
-    const overlay = document.getElementById(OVERLAY_ID);
-    overlay.querySelector("#folp-type").innerText = type.toUpperCase();
-    const contentEl = overlay.querySelector("#folp-content");
-    if (typeof htmlOrText === "string") contentEl.innerText = htmlOrText;
-    else contentEl.innerHTML = htmlOrText;
-    overlay.classList.remove("hidden");
+  // Show the sidebar with new content
+  function showSidebar(content) {
+    ensureSidebar();
+    document.getElementById("folp-content").innerHTML = content;
   }
 
-  // fetch wrapper to backend
+  // Backend API call
   async function callBackend(endpoint, payload = {}) {
     try {
       const res = await fetch(`http://localhost:5000/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
-        credentials: "omit"
       });
       return await res.json();
-    } catch (e) {
-      console.error("Backend call failed", e);
-      return { error: "Backend unreachable. Start server at http://localhost:5000" };
+    } catch {
+      return { error: "Backend unreachable. Start Folp server at http://localhost:5000" };
     }
   }
 
-  // main actions
+  async function doWolfram(selection, type="summary") {
+  showSidebar(`<i>Querying Wolfram Alpha (${type})...</i>`);
+  const result = await callBackend(`wolfram/${type}`, { q: selection });
+
+  if (result.error) {
+    showSidebar(`<span style="color:red">${result.error}</span>`);
+  } else {
+    showSidebar(`<pre>${JSON.stringify(result, null, 2)}</pre>`);
+  }
+}
+
+
+  // Lookup logic
   async function doLookup(selection) {
-    showOverlay("lookup", "Looking up…");
-    const r = await callBackend("lookup", { q: selection });
-    if (r.error) showOverlay("lookup", r.error);
-    else {
-      // compose compact HTML: dictionary definition + wiki summary (if present)
-      let out = "";
-      if (r.dictionary && r.dictionary[0]) {
-        out += `<div><strong>Definition:</strong> ${r.dictionary[0].meaning || r.dictionary[0].definition}</div>`;
+    showSidebar("<i>Searching...</i>");
+    const result = await callBackend("lookup", { q: selection });
+
+    if (result.error) {
+      showSidebar(`<span style="color:red">${result.error}</span>`);
+    } else {
+      let html = "";
+      if (result.dictionary?.[0]) {
+        html += `<p><b>Definition:</b> ${result.dictionary[0].definition}</p>`;
       }
-      if (r.wiki && r.wiki.extract) {
-        out += `<div style="margin-top:8px"><strong>Wikipedia:</strong> ${r.wiki.extract}</div>`;
+      if (result.wiki?.extract) {
+        html += `<p><b>Wikipedia:</b> ${result.wiki.extract}</p>`;
       }
-      if (!out) out = r.message || "No information found.";
-      showOverlay("lookup", out);
+      if (!html) html = "No results found.";
+      showSidebar(html);
     }
   }
 
-  async function doTranslate(selection) {
-    showOverlay("translate", "Translating…");
-    const r = await callBackend("translate", { q: selection, target: "en" });
-    if (r.error) showOverlay("translate", r.error);
-    else showOverlay("translate", r.translation || r.message || "No translation");
-  }
-
-  async function doCodeSearch(selection) {
-    showOverlay("code", "Searching code examples…");
-    const r = await callBackend("code", { q: selection });
-    if (r.error) showOverlay("code", r.error);
-    else {
-      const items = r.items || [];
-      if (items.length === 0) showOverlay("code", "No relevant code snippets found.");
-      else {
-        const html = items.slice(0,3).map(it => `<div style="margin-bottom:8px"><a href="${it.link}" target="_blank" rel="noreferrer">${it.title}</a><pre style="white-space:pre-wrap;max-height:160px;overflow:auto;background:#f6f6f6;padding:8px;border-radius:6px">${escapeHtml(it.snippet)}</pre></div>`).join("");
-        showOverlay("code", html);
-      }
-    }
-  }
-
-  // small helper
-  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]); }
-
-  // capture selection and route actions
-  async function handleAction(type) {
-    const sel = (window.getSelection && window.getSelection().toString()) || "";
-    if (!sel || sel.trim().length === 0) {
-      alert("Please select some text first.");
-      return;
-    }
-    const selection = sel.trim();
-    if (type === "lookup") await doLookup(selection);
-    else if (type === "translate") await doTranslate(selection);
-    else if (type === "code") await doCodeSearch(selection);
-    else await doLookup(selection);
-  }
-
-  // Listen to custom events dispatched by background worker
-   
+doWolfram(selection, "summary");  // default mode
+ // Listen for Folp action from background.js
 window.addEventListener("Folp:action", (e) => {
-  const selection = e.detail;
-  if (!selection || !selection.trim()) {
-    alert("Please select some text first.");
-    return;
-  }
-  doLookup(selection.trim());  // Always lookup for now
+  const selection = e.detail || window.getSelection().toString().trim();
+  if (selection) doLookup(selection);
+});
+
+bubble.addEventListener("click", () => {
+  doWolfram(text, "summary");  // always summary for now
+  bubble.remove();
+  bubble = null;
 });
 
 
-  // keyboard shortcut: Ctrl+Shift+L triggers lookup
+
+  // Keyboard shortcut (Ctrl+Shift+L)
   document.addEventListener("keydown", (e) => {
-    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "l") handleAction("lookup");
-    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "t") handleAction("translate");
-    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "k") handleAction("code");
+    if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "l") {
+      const selection = window.getSelection().toString().trim();
+      if (selection) doLookup(selection);
+    }
   });
-
-  // expose a small API from popup to content (popup sends a message to active tab)
-  chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-    if (msg && msg.type === "doLookup") { handleAction("lookup"); sendResponse({ok:true}); }
-  });
-
-  // create overlay when content script loads
-  ensureOverlay();
-  
-   
 })();

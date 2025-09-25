@@ -3,7 +3,7 @@
   "name": "Folp - Dictionary, Wiki, Translate, Explain, Code",
   "version": "1.0",
   "description": "Highlight text and get quick dictionary, wiki, translation, explanation or code snippets inline.",
-  "permissions": ["activeTab", "scripting", "contextMenus", "storage"],
+  "permissions": ["activeTab", "scripting", "contextMenus", "storage","identity"],
   "action": {
     "default_title": "Folp",
     "default_popup": "popup.html"
@@ -18,5 +18,16 @@
       "css": ["overlay.css"]
     }
   ],
+  "oauth2": {
+    "client_id":"34953",
+    "scopes": ["read_inbox", "profile"]
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["callback.html"],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "host_permissions": ["http://localhost:5000/*"] 
 }
+

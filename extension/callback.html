@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Folp OAuth Callback</title>
+</head>
+<body>
+  <script>
+    // Extract token or code from URL
+    const params = new URLSearchParams(window.location.search);
+    const hashParams = new URLSearchParams(window.location.hash.slice(1));
+    const token = params.get("code") || hashParams.get("access_token");
+
+    if (token) {
+      chrome.runtime.sendMessage({ type: "oauth_callback", token });
+    }
+
+    // Show a simple success message
+    document.body.innerHTML = "<h2>You can close this tab and return to Folp 🚀</h2>";
+  </script>
+</body>
+</html>
