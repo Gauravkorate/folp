@@ -107,7 +107,7 @@ Keep explanations beginner friendly.
           "X-Title": "Folp",
         },
         body: JSON.stringify({
-  model: "nvidia/nemotron-3-ultra-550b-a55b:free",
+  model: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
           messages: [
             {
               role: "system",
