@@ -1,29 +1,159 @@
-/* overlay.css */
-.folp-overlay { position: fixed; top: 14px; right: 14px; z-index: 2147483647; pointer-events: auto; }
-.folp-overlay.hidden { display: none; }
+/* Main Sidebar */
+.folp-sidebar {
+  position: fixed;
+  top: 0;
+  right: 0;
 
-.folp-card {
-  min-width: 320px;
-  max-width: 420px;
-  background: rgba(255,255,255,0.78); /* semi-transparent so page shows behind */
-  backdrop-filter: blur(6px);
-  color: #111;
-  border-radius: 10px;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.22);
-  padding: 10px;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-}
+  width: 500px;
+  height: 100vh;
 
-.folp-close {
-  float: right;
-  border: none;
-  background: transparent;
-  cursor: pointer;
+  background: rgba(20,20,20,0.92);
+  backdrop-filter: blur(20px);
+
+  color: white;
+  font-family: Inter, Arial, sans-serif;
   font-size: 14px;
-  color: #333;
+
+  display: flex;
+  flex-direction: column;
+
+  border-left: 1px solid #333;
+
+  box-shadow:
+    -10px 0 30px rgba(0,0,0,.45);
+
+  z-index: 999999;
+
+  transition:
+    transform .25s ease,
+    opacity .25s ease;
 }
 
-.folp-header { margin-bottom: 6px; font-size: 14px; }
-.folp-content { max-height: 320px; overflow:auto; font-size: 13px; line-height:1.35; }
-.folp-footer { text-align: right; margin-top: 8px; }
-.folp-footer button { margin-left: 6px; padding:6px 8px; font-size:12px; cursor:pointer; }
+.folp-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 16px;
+
+  background: rgba(255,255,255,0.03);
+
+  border-bottom: 1px solid #333;
+}
+
+.folp-content {
+  padding: 20px;
+  overflow-y: auto;
+  flex-grow: 1;
+  line-height: 1.7;
+}
+
+#folp-close {
+  background: transparent;
+  border: none;
+  color: #aaa;
+  font-size: 18px;
+  cursor: pointer;
+  transition: .2s;
+}
+
+#folp-close:hover {
+  color: white;
+}
+
+/* Markdown Rendering */
+.folp-answer {
+  line-height: 1.7;
+  color: white;
+}
+
+.folp-answer h1,
+.folp-answer h2,
+.folp-answer h3 {
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+
+.folp-answer p {
+  margin-bottom: 10px;
+}
+
+.folp-answer ul,
+.folp-answer ol {
+  padding-left: 22px;
+}
+
+.folp-answer code {
+  background: #1f2937;
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-family: Consolas, monospace;
+}
+
+.folp-answer pre {
+  background: #0f172a;
+  border: 1px solid #334155;
+  padding: 14px;
+  border-radius: 10px;
+  overflow-x: auto;
+}
+
+
+.folp-answer blockquote {
+  border-left: 3px solid #4b5563;
+  padding-left: 10px;
+  color: #d1d5db;
+}
+
+/* Loading Spinner */
+.loader {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #666;
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 20px auto;
+}
+
+.folp-copy-btn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: 0.2s;
+}
+
+.folp-copy-btn:hover {
+  background: #1d4ed8;
+}
+.folp-followups{
+  margin-top:20px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
+.folp-followup{
+  background:#2d2d40;
+  color:white;
+  border:none;
+  padding:8px 12px;
+  border-radius:999px;
+  cursor:pointer;
+  font-size:12px;
+}
+
+.folp-followup:hover{
+  background:#3d3d55;
+}
+
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

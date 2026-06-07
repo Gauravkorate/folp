@@ -3,26 +3,25 @@
   "name": "Folp - AI Assistant",
   "version": "1.0",
   "description": "Highlight text and get instant AI explanations, code, or summaries inline.",
-  "permissions": [
-    "activeTab",
-    "scripting",
-    "contextMenus",
-    "storage"
-  ],
-  "host_permissions": [
-    "http://localhost:5000/*"
-  ],
+
+  "permissions": ["activeTab", "scripting", "contextMenus", "storage"],
+
+  "host_permissions": ["http://localhost:5000/*"],
+
   "background": {
     "service_worker": "background.js"
   },
+
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["content.js"],
+      "js": ["lib/marked.min.js", "content.js"],
       "css": ["overlay.css"]
     }
   ],
+
   "action": {
     "default_title": "Folp"
   }
 }
+# hello
